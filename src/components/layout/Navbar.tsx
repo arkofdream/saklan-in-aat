@@ -44,10 +44,15 @@ export default function Navbar() {
 
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden p-2 text-primary"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          type="button"
+          className="md:hidden p-2 text-primary cursor-pointer select-none"
+          onClick={(e) => {
+            e.preventDefault();
+            setIsMobileMenuOpen(!isMobileMenuOpen);
+          }}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
         >
-          {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+          {isMobileMenuOpen ? <X className="w-8 h-8 pointer-events-none" /> : <Menu className="w-8 h-8 pointer-events-none" />}
         </button>
       </div>
 
