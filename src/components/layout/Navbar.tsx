@@ -53,7 +53,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-white border-t border-gray-100 shadow-lg py-4 px-6 flex flex-col space-y-4 animate-in slide-in-from-top-2">
+        <div className="md:hidden absolute left-0 w-full bg-white border-t border-gray-100 shadow-xl py-4 px-6 flex flex-col space-y-4" style={{ top: '80px', zIndex: 9999 }}>
           <Link to="/" onClick={closeMenu} className="text-gray-700 font-medium border-b border-gray-50 pb-2">Ana Sayfa</Link>
           <Link to="/hakkimizda" onClick={closeMenu} className="text-gray-700 font-medium border-b border-gray-50 pb-2">Hakkımızda</Link>
           <Link to="/hizmetler" onClick={closeMenu} className="text-gray-700 font-medium border-b border-gray-50 pb-2">Hizmetler</Link>
