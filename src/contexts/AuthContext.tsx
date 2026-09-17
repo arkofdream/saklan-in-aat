@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types';
+import type { User } from '../types';
 import { authService } from '../services/authService';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string) => Promise<void>;
-  register: (name: string, email: string, phone: string) => Promise<void>;
+  login: (email: string, password?: string) => Promise<void>;
+  register: (name: string, email: string, phone: string, password?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -17,19 +18,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check initial user
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    // Initial fetch
+    authService.getCurrentUser().then(u => {
+      setUser(u);
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const u = await authService.getCurrentUser();
+        setUser(u);
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (email: string) => {
-    const loggedInUser = await authService.login(email);
+  const login = async (email: string, password?: string) => {
+    const loggedInUser = await authService.login(email, password);
     setUser(loggedInUser);
   };
 
-  const register = async (name: string, email: string, phone: string) => {
-    const newUser = await authService.register(name, email, phone);
+  const register = async (name: string, email: string, phone: string, password?: string) => {
+    const newUser = await authService.register(name, email, phone, password);
     setUser(newUser);
   };
 

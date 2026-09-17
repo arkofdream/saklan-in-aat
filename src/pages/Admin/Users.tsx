@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { getDB } from '../../data/mock/db';
+import { supabase } from '../../lib/supabase';
 import { User } from '../../types';
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    setUsers(getDB().users);
+    const fetchUsers = async () => {
+      const { data } = await supabase.from('profiles').select('*');
+      if (data) {
+        setUsers(data.map(d => ({
+          id: d.id,
+          name: d.full_name,
+          email: 'Gizli', // In Supabase, email is in auth.users, profiles doesn't have it unless explicitly synced.
+          phone: d.phone,
+          role: d.role
+        })));
+      }
+    };
+    fetchUsers();
   }, []);
 
   return (

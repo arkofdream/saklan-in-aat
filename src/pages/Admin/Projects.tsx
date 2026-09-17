@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { projectService } from '../../services/projectService';
 import { Project } from '../../types';
 import { Input, Textarea } from '../../components/shared/FormComponents';
+import { ImageUploader } from '../../components/shared/ImageUploader';
 
 export default function AdminProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -88,7 +89,13 @@ export default function AdminProjects() {
             <Input label="Proje Adı" required value={title} onChange={e => setTitle(e.target.value)} />
             <Input label="Konum" required value={location} onChange={e => setLocation(e.target.value)} />
             <Input label="Kategori" required value={category} onChange={e => setCategory(e.target.value)} />
-            <Input label="Görsel URL" required type="url" value={image} onChange={e => setImage(e.target.value)} />
+            
+            <ImageUploader 
+              images={image ? [image] : []} 
+              onChange={imgs => setImage(imgs.length > 0 ? imgs[0] : '')} 
+              isProject={true} 
+            />
+
             <Textarea label="Açıklama" required value={description} onChange={e => setDescription(e.target.value)} rows={3} />
             
             <div className="flex space-x-3 pt-4 border-t">

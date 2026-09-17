@@ -1,43 +1,70 @@
-import { Project } from '../types';
-import { getDB, saveDB } from '../data/mock/db';
+import type { Project } from '../types';
+import { supabase } from '../lib/supabase';
 
 export const projectService = {
   getProjects: async (): Promise<Project[]> => {
-    return getDB().projects;
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    
+    return data.map(p => ({
+      id: p.id,
+      title: p.title,
+      category: p.category,
+      location: p.location,
+      description: p.description,
+      image: p.image
+    }));
   },
 
   getProjectById: async (id: string): Promise<Project | undefined> => {
-    return getDB().projects.find(p => p.id === id);
-  },
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  createProject: async (project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> => {
-    const db = getDB();
-    const newProject: Project = {
-      ...project,
-      id: `pr_${Date.now()}`,
-      createdAt: new Date().toISOString()
-    };
-    db.projects.push(newProject);
-    saveDB(db);
-    return newProject;
-  },
-
-  updateProject: async (id: string, updates: Partial<Project>): Promise<Project> => {
-    const db = getDB();
-    const index = db.projects.findIndex(p => p.id === id);
-    if (index === -1) throw new Error('Proje bulunamadı');
+    if (error || !data) return undefined;
     
-    db.projects[index] = {
-      ...db.projects[index],
-      ...updates
+    return {
+      id: data.id,
+      title: data.title,
+      category: data.category,
+      location: data.location,
+      description: data.description,
+      image: data.image
     };
-    saveDB(db);
-    return db.projects[index];
+  },
+
+  createProject: async (project: Omit<Project, 'id'>): Promise<string> => {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([project])
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data.id;
+  },
+
+  updateProject: async (id: string, updates: Partial<Project>): Promise<void> => {
+    const { error } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
   },
 
   deleteProject: async (id: string): Promise<void> => {
-    const db = getDB();
-    db.projects = db.projects.filter(p => p.id !== id);
-    saveDB(db);
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
   }
 };

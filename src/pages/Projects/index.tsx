@@ -1,12 +1,37 @@
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { mockProjects } from '../../data/mock/projects';
+import { projectService } from '../../services/projectService';
+import { Project } from '../../types';
 
 export default function Projects() {
   const { id } = useParams();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        if (id) {
+          const p = await projectService.getProjectById(id);
+          setProject(p || null);
+        } else {
+          const p = await projectService.getProjects();
+          setProjects(p);
+        }
+      } catch (err) {
+        console.error("Error fetching projects", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, [id]);
+
+  if (loading) return <div className="p-20 text-center text-gray-500">Yükleniyor...</div>;
 
   // If there's an ID, show project detail
   if (id) {
-    const project = mockProjects.find(p => p.id === id);
     if (!project) return <div className="p-20 text-center text-2xl">Proje bulunamadı.</div>;
 
     return (
@@ -82,7 +107,7 @@ export default function Projects() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
-        {mockProjects.map(project => (
+        {projects.map(project => (
           <Link to={`/projeler/${project.id}`} key={project.id} className="group block">
             <div className="aspect-[4/3] bg-gray-200 overflow-hidden mb-6 relative">
               <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />

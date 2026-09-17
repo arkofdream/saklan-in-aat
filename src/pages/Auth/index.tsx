@@ -8,6 +8,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   
   const { login, register } = useAuth();
@@ -19,9 +20,9 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        await login(email);
+        await login(email, password);
       } else {
-        await register(name, email, phone);
+        await register(name, email, phone, password);
       }
       navigate('/');
     } catch (err: any) {
@@ -74,6 +75,15 @@ export default function Auth() {
             value={email} 
             onChange={e => setEmail(e.target.value)} 
             placeholder="ornek@email.com"
+          />
+
+          <Input 
+            label="Şifre" 
+            type="password" 
+            required 
+            value={password} 
+            onChange={e => setPassword(e.target.value)} 
+            placeholder="******"
           />
 
           <button

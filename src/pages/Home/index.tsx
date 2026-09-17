@@ -1,7 +1,23 @@
-import { mockProjects } from '../../data/mock/projects';
+import React, { useEffect, useState } from 'react';
+import { projectService } from '../../services/projectService';
+import { Project } from '../../types';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const p = await projectService.getProjects();
+        setProjects(p);
+      } catch (err) {
+        console.error("Error fetching projects", err);
+      }
+    };
+    fetchProjects();
+  }, []);
+
   const scrollToProjects = () => {
     document.getElementById('projeler')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -36,7 +52,7 @@ export default function Home() {
             <p className="text-gray-500 max-w-2xl mx-auto">Mimari mükemmellik ve yüksek kalite standartlarıyla hayata geçirdiğimiz vizyoner projelerimiz.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {mockProjects.slice(0, 4).map((project) => (
+            {projects.slice(0, 4).map((project) => (
               <Link to={`/projeler/${project.id}`} key={project.id} className="group cursor-pointer block">
                 <div className="aspect-[4/3] bg-gray-200 overflow-hidden mb-4">
                   <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />

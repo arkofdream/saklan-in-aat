@@ -1,22 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { getDB } from '../../data/mock/db';
+import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, realEstate: 0, automotive: 0, pending: 0, projects: 0 });
 
   useEffect(() => {
-    const db = getDB();
-    const pendingCount = 
-      db.realEstate.filter(r => r.status === 'pending').length + 
-      db.vehicles.filter(v => v.status === 'pending').length;
+    const fetchStats = async () => {
+      const [
+        { count: users },
+        { count: realEstate },
+        { count: automotive },
+        { count: pending },
+        { count: projects }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('listing_type', 'real_estate'),
+        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('listing_type', 'vehicle'),
+        supabase.from('listings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('projects').select('*', { count: 'exact', head: true })
+      ]);
 
-    setStats({
-      users: db.users.length,
-      realEstate: db.realEstate.length,
-      automotive: db.vehicles.length,
-      pending: pendingCount,
-      projects: db.projects.length
-    });
+      setStats({
+        users: users || 0,
+        realEstate: realEstate || 0,
+        automotive: automotive || 0,
+        pending: pending || 0,
+        projects: projects || 0
+      });
+    };
+
+    fetchStats();
   }, []);
 
   return (
