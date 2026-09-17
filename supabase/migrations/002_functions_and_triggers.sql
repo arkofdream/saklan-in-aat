@@ -29,6 +29,24 @@ CREATE TRIGGER set_updated_at_profiles
 BEFORE UPDATE ON profiles
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
+-- Prevent role elevation trigger
+CREATE OR REPLACE FUNCTION prevent_role_elevation()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.role IS DISTINCT FROM OLD.role THEN
+    IF NOT public.is_admin() THEN
+      NEW.role = OLD.role;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS check_role_elevation ON profiles;
+CREATE TRIGGER check_role_elevation
+BEFORE UPDATE ON profiles
+FOR EACH ROW EXECUTE PROCEDURE prevent_role_elevation();
+
 DROP TRIGGER IF EXISTS set_updated_at_listings ON listings;
 CREATE TRIGGER set_updated_at_listings
 BEFORE UPDATE ON listings
