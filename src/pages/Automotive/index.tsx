@@ -1,21 +1,113 @@
+import React, { useEffect, useState } from 'react';
+import { listingService } from '../../services/listingService';
+import { VehicleListing } from '../../types';
+import { ListingCard } from '../../components/shared/ListingCard';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { Select, Input } from '../../components/shared/FormComponents';
+
 export default function Automotive() {
+  const [listings, setListings] = useState<VehicleListing[]>([]);
+  const [filtered, setFiltered] = useState<VehicleListing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [category, setCategory] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [city, setCity] = useState('');
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      const data = await listingService.getVehicles('approved');
+      setListings(data);
+      setFiltered(data);
+      setLoading(false);
+    };
+    fetchListings();
+  }, []);
+
+  const handleApplyFilters = () => {
+    let result = [...listings];
+    
+    if (category) result = result.filter(l => l.details.category === category);
+    if (minPrice) result = result.filter(l => l.price >= Number(minPrice));
+    if (maxPrice) result = result.filter(l => l.price <= Number(maxPrice));
+    if (city) result = result.filter(l => l.city.toLowerCase().includes(city.toLowerCase()));
+    
+    setFiltered(result);
+  };
+
+  const handleResetFilters = () => {
+    setCategory('');
+    setMinPrice('');
+    setMaxPrice('');
+    setCity('');
+    setFiltered(listings);
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-semibold mb-8 text-primary">Saklan Otomotiv</h1>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="aspect-[4/3] bg-gray-200">
-                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80" alt="Araç" className="w-full h-full object-cover" />
+        
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar / Filter */}
+          <div className="w-full lg:w-1/4">
+            <FilterPanel onApply={handleApplyFilters} onReset={handleResetFilters}>
+              <Select 
+                label="Kategori" 
+                value={category} 
+                onChange={e => setCategory(e.target.value)}
+                options={[
+                  { value: 'Otomobil', label: 'Otomobil' },
+                  { value: 'SUV', label: 'SUV' },
+                  { value: 'Ticari Araç', label: 'Ticari Araç' },
+                  { value: 'Motosiklet', label: 'Motosiklet' },
+                  { value: 'Diğer', label: 'Diğer' }
+                ]}
+              />
+              <Input 
+                label="İl" 
+                type="text" 
+                value={city} 
+                onChange={e => setCity(e.target.value)} 
+                placeholder="Örn: İstanbul" 
+              />
+              <div className="flex space-x-2">
+                <Input 
+                  label="Min Fiyat" 
+                  type="number" 
+                  value={minPrice} 
+                  onChange={e => setMinPrice(e.target.value)} 
+                  className="w-full"
+                />
+                <Input 
+                  label="Max Fiyat" 
+                  type="number" 
+                  value={maxPrice} 
+                  onChange={e => setMaxPrice(e.target.value)} 
+                  className="w-full"
+                />
               </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900 mb-1">Mercedes-Benz C 200</h3>
-                <p className="text-xs text-gray-500 mb-2">2023 • 15.000 km • Benzin</p>
-                <div className="text-primary font-bold">3.250.000 TL</div>
+            </FilterPanel>
+          </div>
+
+          {/* Listing Grid */}
+          <div className="w-full lg:w-3/4">
+            {loading ? (
+              <div className="text-center py-10">Yükleniyor...</div>
+            ) : filtered.length === 0 ? (
+              <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+                Arama kriterlerinize uygun araç bulunamadı.
               </div>
-            </div>
-          ))}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filtered.map(listing => (
+                  <ListingCard key={listing.id} listing={listing} linkPrefix="otomotiv" />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
