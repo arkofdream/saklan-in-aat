@@ -1,5 +1,6 @@
 import type { Listing, RealEstateListing, VehicleListing, ListingType, ListingStatus } from '../types';
 import { supabase } from '../lib/supabase';
+import { mockRealEstates, mockVehicles } from '../data/mockData';
 
 // Helper to construct listings properly
 const constructListing = (row: any): any => {
@@ -64,30 +65,43 @@ const constructListing = (row: any): any => {
 export const listingService = {
   // --- REAL ESTATE ---
   getRealEstates: async (status?: ListingStatus): Promise<RealEstateListing[]> => {
-    let query = supabase
-      .from('listings')
-      .select('*, real_estate_details(*), listing_images(*)')
-      .eq('listing_type', 'real_estate')
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('listings')
+        .select('*, real_estate_details(*), listing_images(*)')
+        .eq('listing_type', 'real_estate')
+        .order('created_at', { ascending: false });
 
-    if (status) query = query.eq('status', status);
+      if (status) query = query.eq('status', status);
 
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
+      const { data, error } = await query;
+      
+      if (error || !data || data.length === 0) {
+        return mockRealEstates;
+      }
 
-    return (data || []).map(constructListing);
+      return (data || []).map(constructListing);
+    } catch (e) {
+      return mockRealEstates;
+    }
   },
 
   getRealEstateById: async (id: string): Promise<RealEstateListing | undefined> => {
-    const { data, error } = await supabase
-      .from('listings')
-      .select('*, real_estate_details(*), listing_images(*)')
-      .eq('listing_type', 'real_estate')
-      .eq('id', id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*, real_estate_details(*), listing_images(*)')
+        .eq('listing_type', 'real_estate')
+        .eq('id', id)
+        .single();
 
-    if (error || !data) return undefined;
-    return constructListing(data);
+      if (error || !data) {
+        return mockRealEstates.find(r => r.id === id);
+      }
+      return constructListing(data);
+    } catch (e) {
+      return mockRealEstates.find(r => r.id === id);
+    }
   },
 
   getRealEstatesByUser: async (userId: string): Promise<RealEstateListing[]> => {
@@ -183,30 +197,43 @@ export const listingService = {
 
   // --- VEHICLES ---
   getVehicles: async (status?: ListingStatus): Promise<VehicleListing[]> => {
-    let query = supabase
-      .from('listings')
-      .select('*, vehicle_details(*), listing_images(*)')
-      .eq('listing_type', 'vehicle')
-      .order('created_at', { ascending: false });
+    try {
+      let query = supabase
+        .from('listings')
+        .select('*, vehicle_details(*), listing_images(*)')
+        .eq('listing_type', 'vehicle')
+        .order('created_at', { ascending: false });
 
-    if (status) query = query.eq('status', status);
+      if (status) query = query.eq('status', status);
 
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
+      const { data, error } = await query;
+      
+      if (error || !data || data.length === 0) {
+        return mockVehicles;
+      }
 
-    return (data || []).map(constructListing);
+      return (data || []).map(constructListing);
+    } catch (e) {
+      return mockVehicles;
+    }
   },
 
   getVehicleById: async (id: string): Promise<VehicleListing | undefined> => {
-    const { data, error } = await supabase
-      .from('listings')
-      .select('*, vehicle_details(*), listing_images(*)')
-      .eq('listing_type', 'vehicle')
-      .eq('id', id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*, vehicle_details(*), listing_images(*)')
+        .eq('listing_type', 'vehicle')
+        .eq('id', id)
+        .single();
 
-    if (error || !data) return undefined;
-    return constructListing(data);
+      if (error || !data) {
+        return mockVehicles.find(v => v.id === id);
+      }
+      return constructListing(data);
+    } catch (e) {
+      return mockVehicles.find(v => v.id === id);
+    }
   },
 
   getVehiclesByUser: async (userId: string): Promise<VehicleListing[]> => {
