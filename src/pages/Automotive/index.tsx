@@ -18,10 +18,15 @@ export default function Automotive() {
 
   useEffect(() => {
     const fetchListings = async () => {
-      const data = await listingService.getVehicles('approved');
-      setListings(data);
-      setFiltered(data);
-      setLoading(false);
+      try {
+        const data = await listingService.getVehicles('approved');
+        setListings(data);
+        setFiltered(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchListings();
   }, []);

@@ -1,5 +1,5 @@
 import type { Listing, RealEstateListing, VehicleListing, ListingType, ListingStatus } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, isDummySupabase } from '../lib/supabase';
 import { mockRealEstates, mockVehicles } from '../data/mockData';
 
 // Helper to construct listings properly
@@ -66,6 +66,7 @@ export const listingService = {
   // --- REAL ESTATE ---
   getRealEstates: async (status?: ListingStatus): Promise<RealEstateListing[]> => {
     try {
+      if (isDummySupabase) return mockRealEstates;
       let query = supabase
         .from('listings')
         .select('*, real_estate_details(*), listing_images(*)')
@@ -88,6 +89,7 @@ export const listingService = {
 
   getRealEstateById: async (id: string): Promise<RealEstateListing | undefined> => {
     try {
+      if (isDummySupabase) return mockRealEstates.find(r => r.id === id);
       const { data, error } = await supabase
         .from('listings')
         .select('*, real_estate_details(*), listing_images(*)')
@@ -198,6 +200,7 @@ export const listingService = {
   // --- VEHICLES ---
   getVehicles: async (status?: ListingStatus): Promise<VehicleListing[]> => {
     try {
+      if (isDummySupabase) return mockVehicles;
       let query = supabase
         .from('listings')
         .select('*, vehicle_details(*), listing_images(*)')
@@ -220,6 +223,7 @@ export const listingService = {
 
   getVehicleById: async (id: string): Promise<VehicleListing | undefined> => {
     try {
+      if (isDummySupabase) return mockVehicles.find(v => v.id === id);
       const { data, error } = await supabase
         .from('listings')
         .select('*, vehicle_details(*), listing_images(*)')

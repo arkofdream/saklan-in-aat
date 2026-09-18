@@ -1,10 +1,11 @@
 import type { Project } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, isDummySupabase } from '../lib/supabase';
 import { mockProjects } from '../data/mockData';
 
 export const projectService = {
   getProjects: async (): Promise<Project[]> => {
     try {
+      if (isDummySupabase) return mockProjects;
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -29,6 +30,7 @@ export const projectService = {
 
   getProjectById: async (id: string): Promise<Project | undefined> => {
     try {
+      if (isDummySupabase) return mockProjects.find(p => p.id === id);
       const { data, error } = await supabase
         .from('projects')
         .select('*')
